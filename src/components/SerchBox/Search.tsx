@@ -1,4 +1,4 @@
-// src/components/SearchBox/SearchBox.tsx
+
 import React from 'react';
 import css from './SearchBox.module.css';
 

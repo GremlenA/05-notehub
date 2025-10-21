@@ -8,7 +8,7 @@ const api = axios.create({
   baseURL: 'https://notehub-public.goit.study/api',
 });
 
-// ✅ корректный interceptor без перезаписи headers
+
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (TOKEN) {
     config.headers.set('Authorization', `Bearer ${TOKEN}`);

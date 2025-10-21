@@ -1,11 +1,11 @@
-// src/components/Pagination/Pagination.tsx
+
 import React from 'react';
 import ReactPaginate from 'react-paginate';
 import css from './Pagination.module.css';
 
 interface Props {
   totalPages: number;
-  currentPage: number; // 1-based
+  currentPage: number; 
   onPageChange: (page: number) => void;
 }
 
