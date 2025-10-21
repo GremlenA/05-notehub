@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import NoteList from "../NoteList/NoteList";
 import type { FetchNotesResponse } from "../../services/noteService";
 import { fetchNotes, deleteNote } from "../../services/noteService";
-import SearchBox from "../SerchBox/Search";
+import SearchBox from "../SearchBox/Search";
 import Pagination from "../Pagination/Pagination";
 import Modal from "../Modal/Modal";
 import NoteForm from "../NoteForm/NoteForm";
