@@ -1,15 +1,14 @@
-
 import React from 'react';
 import ReactPaginate from 'react-paginate';
 import css from './Pagination.module.css';
 
-interface Props {
+interface PaginationProps {
   totalPages: number;
   currentPage: number; 
   onPageChange: (page: number) => void;
 }
 
-const Pagination: React.FC<Props> = ({ totalPages, currentPage, onPageChange }) => {
+const Pagination: React.FC<PaginationProps> = ({ totalPages, currentPage, onPageChange }) => {
   if (totalPages <= 1) return null;
 
   return (

@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import NoteList from "../NoteList/NoteList";
 import type { FetchNotesResponse } from "../../services/noteService";
-import { fetchNotes, deleteNote } from "../../services/noteService";
-import SearchBox from "../SearchBox/Search";
+import { fetchNotes } from "../../services/noteService";
+import SearchBox from "../SearchBox/SearchBox";
 import Pagination from "../Pagination/Pagination";
 import Modal from "../Modal/Modal";
 import NoteForm from "../NoteForm/NoteForm";
@@ -16,36 +16,30 @@ export default function App() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [debouncedSearch] = useDebounce(search, 500); 
+  const [debouncedSearch] = useDebounce(search, 500);
 
-  const qc = useQueryClient();
 
   const { data, isLoading, isError } = useQuery<FetchNotesResponse>({
     queryKey: ["notes", page, debouncedSearch],
     queryFn: () => fetchNotes({ page, search: debouncedSearch }),
-  });
-
-  const delMutation = useMutation({
-    mutationFn: (id: string) => deleteNote({ id }),
-    onMutate: (id: string) => setDeletingId(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["notes", page, debouncedSearch] });
-      setDeletingId(null);
-    },
-    onError: () => setDeletingId(null),
+    initialData: { notes: [], totalPages: 1 },
+    staleTime: 2000,
   });
 
   if (isLoading) return <p>Loading...</p>;
   if (isError) return <p>Error loading notes</p>;
 
+  const notes = data?.notes ?? [];
+  const totalPages = data?.totalPages ?? 1;
+
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
         <SearchBox value={search} onChange={setSearch} />
-        {data && data.totalPages > 1 && (
+        {totalPages > 1 && (
           <Pagination
             currentPage={page}
-            totalPages={data.totalPages}
+            totalPages={totalPages}
             onPageChange={setPage}
           />
         )}
@@ -54,15 +48,7 @@ export default function App() {
         </button>
       </header>
 
-      {data?.notes?.length ? (
-        <NoteList
-          notes={data.notes}
-          onDelete={(id) => delMutation.mutate(id)}
-          deletingId={deletingId}
-        />
-      ) : (
-        <p>No notes found</p>
-      )}
+      <NoteList notes={notes} deletingId={deletingId} setDeletingId={setDeletingId} />
 
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>

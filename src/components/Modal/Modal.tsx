@@ -1,5 +1,4 @@
-
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import css from './Modal.module.css';
 
@@ -12,11 +11,20 @@ const modalRoot = document.getElementById('modal-root') ?? document.body;
 
 const Modal: React.FC<Props> = ({ children, onClose }) => {
   useEffect(() => {
+    // Блокировка прокрутки
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
     document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
+
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      // Восстановление прокрутки
+      document.body.style.overflow = originalOverflow;
+    };
   }, [onClose]);
 
   return createPortal(
