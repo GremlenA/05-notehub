@@ -16,12 +16,12 @@ export default function App() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [debouncedSearch] = useDebounce(search, 500); // <-- useDebounce для поиска
+  const [debouncedSearch] = useDebounce(search, 500); 
 
   const qc = useQueryClient();
 
   const { data, isLoading, isError } = useQuery<FetchNotesResponse>({
-    queryKey: ["notes", page, debouncedSearch], // <-- используем debouncedSearch
+    queryKey: ["notes", page, debouncedSearch],
     queryFn: () => fetchNotes({ page, search: debouncedSearch }),
   });
 
@@ -66,7 +66,10 @@ export default function App() {
 
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>
-          <NoteForm onClose={() => setIsModalOpen(false)} />
+          <NoteForm
+            onCancel={() => setIsModalOpen(false)}
+            onSuccess={() => setIsModalOpen(false)}
+          />
         </Modal>
       )}
     </div>
