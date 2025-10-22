@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import NoteList from "../NoteList/NoteList";
 import type { FetchNotesResponse } from "../../services/noteService";
@@ -11,12 +11,20 @@ import { useDebounce } from "use-debounce";
 import css from "./App.module.css";
 
 export default function App() {
+
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+
   const [debouncedSearch] = useDebounce(search, 500);
+
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
 
 
   const { data, isLoading, isError } = useQuery<FetchNotesResponse>({
@@ -26,16 +34,26 @@ export default function App() {
     staleTime: 2000,
   });
 
+  const notes = data?.notes ?? [];
+  const totalPages = data?.totalPages ?? 1;
+
+  
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(1);
+    }
+  }, [page, totalPages]);
+
+
   if (isLoading) return <p>Loading...</p>;
   if (isError) return <p>Error loading notes</p>;
 
-  const notes = data?.notes ?? [];
-  const totalPages = data?.totalPages ?? 1;
 
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
-        <SearchBox value={search} onChange={setSearch} />
+        <SearchBox value={search} onChange={handleSearchChange} />
+
         {totalPages > 1 && (
           <Pagination
             currentPage={page}
@@ -43,12 +61,17 @@ export default function App() {
             onPageChange={setPage}
           />
         )}
+
         <button className={css.button} onClick={() => setIsModalOpen(true)}>
           Create note +
         </button>
       </header>
 
-      <NoteList notes={notes} deletingId={deletingId} setDeletingId={setDeletingId} />
+      <NoteList
+        notes={notes}
+        deletingId={deletingId}
+        setDeletingId={setDeletingId}
+      />
 
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>
