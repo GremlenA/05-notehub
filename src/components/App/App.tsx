@@ -11,43 +11,36 @@ import { useDebounce } from "use-debounce";
 import css from "./App.module.css";
 
 export default function App() {
-
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-
   const [debouncedSearch] = useDebounce(search, 500);
-
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
     setPage(1);
   };
 
-
-  const { data, isLoading, isError } = useQuery<FetchNotesResponse>({
-    queryKey: ["notes", page, debouncedSearch],
-    queryFn: () => fetchNotes({ page, search: debouncedSearch }),
-    initialData: { notes: [], totalPages: 1 },
-    staleTime: 2000,
-  });
+ const { data, isLoading, isError } = useQuery<FetchNotesResponse>({
+  queryKey: ["notes", page, debouncedSearch],
+  queryFn: () => fetchNotes({ page, search: debouncedSearch }),
+  placeholderData: (previousData) => previousData ?? undefined,
+  initialData: { notes: [], totalPages: 1 },
+  staleTime: 2000,
+});
 
   const notes = data?.notes ?? [];
   const totalPages = data?.totalPages ?? 1;
 
-  
   useEffect(() => {
     if (page > totalPages) {
       setPage(1);
     }
   }, [page, totalPages]);
 
-
   if (isLoading) return <p>Loading...</p>;
   if (isError) return <p>Error loading notes</p>;
-
 
   return (
     <div className={css.app}>
@@ -67,11 +60,15 @@ export default function App() {
         </button>
       </header>
 
-      <NoteList
-        notes={notes}
-        deletingId={deletingId}
-        setDeletingId={setDeletingId}
-      />
+      {notes.length > 0 ? (
+        <NoteList
+          notes={notes}
+          deletingId={deletingId}
+          setDeletingId={setDeletingId}
+        />
+      ) : (
+        <p className={css.empty}>Нотатки не знайдено</p>
+      )}
 
       {isModalOpen && (
         <Modal onClose={() => setIsModalOpen(false)}>
