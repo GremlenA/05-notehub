@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import NoteList from "../NoteList/NoteList";
 import type { FetchNotesResponse } from "../../services/noteService";
 import { fetchNotes } from "../../services/noteService";
@@ -22,13 +22,20 @@ export default function App() {
     setPage(1);
   };
 
- const { data, isLoading, isError } = useQuery<FetchNotesResponse>({
-  queryKey: ["notes", page, debouncedSearch],
-  queryFn: () => fetchNotes({ page, search: debouncedSearch }),
-  placeholderData: (previousData) => previousData ?? undefined,
-  initialData: { notes: [], totalPages: 1 },
-  staleTime: 2000,
-});
+  const queryKey = ["notes", page, debouncedSearch] as const;
+
+  const { data, isLoading, isError, isFetching } = useQuery<
+    FetchNotesResponse, // TData
+    Error,              // TError
+    FetchNotesResponse, // TQueryFnData
+    readonly [string, number, string] // TQueryKey
+  >({
+    queryKey,
+    queryFn: () => fetchNotes({ page, search: debouncedSearch }),
+    // для плавной пагинации: использует предыдущие данные как placeholder
+    placeholderData: keepPreviousData,
+    staleTime: 2000,
+  });
 
   const notes = data?.notes ?? [];
   const totalPages = data?.totalPages ?? 1;
@@ -39,7 +46,7 @@ export default function App() {
     }
   }, [page, totalPages]);
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading && !isFetching) return <p>Loading...</p>;
   if (isError) return <p>Error loading notes</p>;
 
   return (
@@ -67,7 +74,7 @@ export default function App() {
           setDeletingId={setDeletingId}
         />
       ) : (
-        <p className={css.empty}>Нотатки не знайдено</p>
+        !isFetching && <p className={css.empty}>Нотатки не знайдено</p>
       )}
 
       {isModalOpen && (
